@@ -59,7 +59,7 @@ MIN_RSSI = -81
 # multiply by 10 for one decimal place,
 # 100 for 2 decimal places, etc.
 # this eats RAM, start with small numbers
-GRANULARITY = 10
+GRANULARITY = 30
 
 
 def sample_agreement(txpower_default):
@@ -111,6 +111,8 @@ if __name__ == '__main__':
     equal_best = []
     worst = None
     sample = {}
+    best_range_min = None
+    best_range_max = None
 
     # sweep -49dBm to -72dBm
     for i in range(
@@ -120,27 +122,23 @@ if __name__ == '__main__':
 
         point = float(i)/GRANULARITY
         matches, mismatches = sample_agreement(point)
-        sample[point] = {"matches": matches, "mismatches": mismatches}
 
-    for k in sample.keys():
-        matches = sample[k]["matches"]
-        mismatches = sample[k]["mismatches"]
         num_matches = len(matches)
         num_mismatches = len(mismatches)
         agreement = float(num_matches) / (num_matches + num_mismatches)
+
         if not best or best["agreement"] < agreement:
-            best = {"default": k, "agreement": agreement}
+            best = {"default": point, "agreement": agreement}
             equal_best = [best, ]
         if best and best["agreement"] == agreement:
-            equal_best.append({"default": k, "agreement": agreement})
+            equal_best.append({"default": point, "agreement": agreement})
 
         if not worst or worst["agreement"] > agreement:
-            worst = {"default": k, "agreement": agreement}
+            worst = {"default": point, "agreement": agreement}
+
     print("best = %s" % best)
     print("worst = %s" % worst)
 
-    best_range_min = None
-    best_range_max = None
     for eb in equal_best:
         if not best_range_min or best_range_min > eb["default"]:
             best_range_min = eb["default"]
